@@ -202,7 +202,7 @@ function CheckWinnersTab() {
                   {r.serie && (
                     <>
                       <span className="text-xs text-gray-400 mx-1">Serie</span>
-                      {r.serie.split("").map((d, i) => (
+                      {r.serie?.split("").map((d, i) => (
                         <span key={`s${i}`} className="w-7 h-7 rounded-full bg-gray-600 text-white flex items-center justify-center text-xs font-bold">
                           {d}
                         </span>
@@ -254,7 +254,7 @@ function ResultsTab() {
             {r.serie && (
               <>
                 <span className="text-xs text-gray-400 mx-1">Serie</span>
-                {r.serie.split("").map((d, i) => (
+                {r.serie?.split("").map((d, i) => (
                   <span key={`s${i}`} className="w-7 h-7 rounded-full bg-gray-600 text-white flex items-center justify-center text-xs font-bold">
                     {d}
                   </span>

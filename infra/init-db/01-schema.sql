@@ -119,7 +119,7 @@ CREATE TABLE lottery_results (
     raw_data    JSONB,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT uq_lottery_result UNIQUE (loteria, fecha, numero)
+    CONSTRAINT uq_lottery_result UNIQUE (tenant_id, loteria, fecha, numero)
 );
 
 CREATE INDEX idx_lottery_results_fecha ON lottery_results(fecha);
