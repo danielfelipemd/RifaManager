@@ -1,20 +1,160 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  approvePayment,
   createTenant,
   deactivateTenant,
+  getAllPaymentRequests,
   getAllTenants,
   getPlatformStats,
   getTenantUsers,
+  rejectPayment,
   updateTenant,
+  type PaymentRequest,
   type TenantDetail,
   type TenantUser,
 } from "@/api/admin";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Building2, ChevronDown, ChevronRight, Plus, Power, Users } from "lucide-react";
+import { Building2, Check, ChevronDown, ChevronRight, CreditCard, Plus, Power, Users, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminPanel() {
+  const [activeTab, setActiveTab] = useState<"tenants" | "payments">("tenants");
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Panel de Administracion</h1>
+      <div className="flex gap-2 mb-6 border-b">
+        <button onClick={() => setActiveTab("tenants")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "tenants" ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500"}`}>
+          Clientes
+        </button>
+        <button onClick={() => setActiveTab("payments")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "payments" ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500"}`}>
+          Solicitudes de Pago
+        </button>
+      </div>
+      {activeTab === "tenants" && <TenantsTab />}
+      {activeTab === "payments" && <PaymentsTab />}
+    </div>
+  );
+}
+
+function PaymentsTab() {
+  const queryClient = useQueryClient();
+  const { data: payments, isLoading } = useQuery({
+    queryKey: ["admin-payments"],
+    queryFn: () => getAllPaymentRequests(),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => approvePayment(id, "Pago verificado"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+      toast.success("Pago aprobado - Rifa activada");
+    },
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Error");
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (id: string) => rejectPayment(id, "Pago no verificado"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
+      toast.success("Solicitud rechazada");
+    },
+  });
+
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" /></div>;
+  }
+
+  const pendientes = payments?.filter((p) => p.estado === "pendiente") ?? [];
+  const historial = payments?.filter((p) => p.estado !== "pendiente") ?? [];
+
+  return (
+    <div className="space-y-6">
+      {/* Pending */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          Pendientes ({pendientes.length})
+        </h3>
+        {pendientes.length === 0 ? (
+          <p className="text-gray-500 text-sm bg-white rounded-xl border p-6 text-center">No hay solicitudes pendientes</p>
+        ) : (
+          <div className="space-y-3">
+            {pendientes.map((p) => (
+              <div key={p.id} className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-semibold text-gray-900">{p.tenant_nombre}</p>
+                    <p className="text-sm text-gray-600">Rifa: {p.raffle_nombre}</p>
+                  </div>
+                  <p className="text-xl font-bold text-indigo-700">{formatCurrency(p.monto)}</p>
+                </div>
+                <div className="text-xs text-gray-500 mb-3 space-y-0.5">
+                  <p>Comision: {(Number(p.porcentaje) * 100).toFixed(0)}% | Metodo: {p.metodo_pago}</p>
+                  {p.comprobante_ref && <p>Ref: {p.comprobante_ref}</p>}
+                  {p.notas_cliente && <p>Notas: {p.notas_cliente}</p>}
+                  <p>Fecha: {formatDate(p.created_at)}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => approveMutation.mutate(p.id)} disabled={approveMutation.isPending}
+                    className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                    <Check size={16} />Aprobar y Activar Rifa
+                  </button>
+                  <button onClick={() => rejectMutation.mutate(p.id)} disabled={rejectMutation.isPending}
+                    className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-50">
+                    <X size={16} />Rechazar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* History */}
+      {historial.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Historial</h3>
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Cliente</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Rifa</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Monto</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Fecha</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {historial.map((p) => (
+                  <tr key={p.id}>
+                    <td className="px-4 py-3">{p.tenant_nombre}</td>
+                    <td className="px-4 py-3">{p.raffle_nombre}</td>
+                    <td className="px-4 py-3 font-medium">{formatCurrency(p.monto)}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        p.estado === "aprobado" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      }`}>{p.estado}</span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{formatDate(p.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TenantsTab() {
   const { data: stats } = useQuery({ queryKey: ["admin-stats"], queryFn: getPlatformStats });
   const { data: tenants, isLoading } = useQuery({ queryKey: ["admin-tenants"], queryFn: getAllTenants });
   const [showCreate, setShowCreate] = useState(false);
