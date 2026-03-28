@@ -318,6 +318,7 @@ async def update_tenant(tenant_id: UUID, data: TenantUpdateAdmin, db: DbSession,
     return TenantDetail(
         id=tenant.id, nombre=tenant.nombre, slug=tenant.slug, plan=tenant.plan,
         activo=tenant.activo, config=tenant.config, created_at=tenant.created_at,
+        comision_porcentaje=tenant.comision_porcentaje,
     )
 
 
