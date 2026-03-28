@@ -34,6 +34,7 @@ from app.raffles.router import router as raffles_router  # noqa: E402
 from app.tickets.router import router as tickets_router  # noqa: E402
 from app.purchases.router import router as purchases_router  # noqa: E402
 from app.dashboard.router import router as dashboard_router  # noqa: E402
+from app.lottery.router import router as lottery_router  # noqa: E402
 
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(tenants_router, prefix="/api/v1/tenants", tags=["tenants"])
@@ -42,6 +43,7 @@ app.include_router(raffles_router, prefix="/api/v1/raffles", tags=["raffles"])
 app.include_router(tickets_router, prefix="/api/v1", tags=["tickets"])
 app.include_router(purchases_router, prefix="/api/v1/purchases", tags=["purchases"])
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["dashboard"])
+app.include_router(lottery_router, prefix="/api/v1/lottery", tags=["lottery"])
 
 
 @app.get("/health")

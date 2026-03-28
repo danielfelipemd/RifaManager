@@ -5,6 +5,7 @@ import {
   Users,
   ShoppingCart,
   Settings,
+  Trophy,
   X,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "super_admin"] },
   { to: "/raffles", icon: Ticket, label: "Rifas", roles: ["admin", "super_admin", "vendedor"] },
   { to: "/purchases", icon: ShoppingCart, label: "Compras", roles: ["admin", "super_admin", "vendedor"] },
+  { to: "/lottery", icon: Trophy, label: "Loterias", roles: ["admin", "super_admin", "vendedor"] },
   { to: "/users", icon: Users, label: "Usuarios", roles: ["admin", "super_admin"] },
   { to: "/settings", icon: Settings, label: "Config", roles: ["admin", "super_admin"] },
 ];

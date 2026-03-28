@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_WHATSAPP_FROM: str = ""
 
+    BROWSERLESS_URL: str = ""
+    BROWSERLESS_TOKEN: str = ""
+
     RESERVATION_TIMEOUT_MINUTES: int = 15
     CORS_ORIGINS: str = "http://localhost:5173"
 

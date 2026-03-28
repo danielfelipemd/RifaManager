@@ -165,14 +165,30 @@ CREATE TABLE audit_logs (
 CREATE INDEX idx_audit_tenant ON audit_logs(tenant_id);
 CREATE INDEX idx_audit_fecha ON audit_logs(tenant_id, created_at);
 
+-- LOTTERY PROVIDERS (global, not per-tenant)
+CREATE TABLE lottery_providers (
+    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nombre      VARCHAR(255) NOT NULL UNIQUE,
+    slug        VARCHAR(100) NOT NULL UNIQUE,
+    url_oficial VARCHAR(500),
+    activo      BOOLEAN NOT NULL DEFAULT TRUE,
+    dia_sorteo  VARCHAR(50),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_lottery_providers_slug ON lottery_providers(slug);
+
 -- UPDATED_AT TRIGGER
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER trg_tenants_updated_at BEFORE UPDATE ON tenants
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
