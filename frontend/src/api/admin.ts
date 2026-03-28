@@ -84,7 +84,7 @@ export async function createTenant(payload: {
   return data;
 }
 
-export async function updateTenant(id: string, payload: { nombre?: string; plan?: string; activo?: boolean }): Promise<TenantDetail> {
+export async function updateTenant(id: string, payload: { nombre?: string; plan?: string; activo?: boolean; comision_porcentaje?: number }): Promise<TenantDetail> {
   const { data } = await client.put<TenantDetail>(`/admin/tenants/${id}`, payload);
   return data;
 }
