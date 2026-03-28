@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useCreateRaffle } from "@/hooks/useRaffles";
+import { getProviders } from "@/api/lottery";
 import toast from "react-hot-toast";
 
 export default function RaffleCreate() {
@@ -15,6 +17,11 @@ export default function RaffleCreate() {
   });
   const createRaffle = useCreateRaffle();
   const navigate = useNavigate();
+
+  const { data: providers } = useQuery({
+    queryKey: ["lottery-providers"],
+    queryFn: getProviders,
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,6 +49,8 @@ export default function RaffleCreate() {
       toast.error(msg);
     }
   };
+
+  const activeProviders = providers?.filter((p) => p.activo) ?? [];
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -129,13 +138,19 @@ export default function RaffleCreate() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Loteria asociada</label>
-          <input
+          <select
             name="loteria_asociada"
             value={form.loteria_asociada}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-            placeholder="Ej: Loteria de Boyaca"
-          />
+          >
+            <option value="">-- Seleccionar loteria --</option>
+            {activeProviders.map((p) => (
+              <option key={p.id} value={p.nombre}>
+                {p.nombre} {p.dia_sorteo ? `(${p.dia_sorteo})` : ""}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex gap-3 pt-2">
