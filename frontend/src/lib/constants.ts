@@ -1,5 +1,5 @@
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
-export const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000/ws";
+export const API_URL = import.meta.env.VITE_API_URL || "https://rifamanager-api.huem98.easypanel.host/api/v1";
+export const WS_URL = import.meta.env.VITE_WS_URL || "wss://rifamanager-api.huem98.easypanel.host/ws";
 
 export const TICKET_STATES = {
   disponible: { label: "Disponible", color: "bg-green-500", textColor: "text-green-700" },
