@@ -54,3 +54,52 @@ class UserOfTenant(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PlatformConfigRead(BaseModel):
+    clave: str
+    valor: str
+    descripcion: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class PlatformConfigUpdate(BaseModel):
+    valor: str
+
+
+class CommissionPreview(BaseModel):
+    valor_rifa: float
+    porcentaje: float
+    comision: float
+
+
+class PaymentRequestRead(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    raffle_id: UUID
+    monto: Decimal
+    porcentaje: Decimal
+    estado: str
+    metodo_pago: str
+    comprobante_ref: str | None
+    notas_cliente: str | None
+    notas_admin: str | None
+    aprobado_por: UUID | None
+    created_at: datetime
+    aprobado_at: datetime | None
+    # Joined fields
+    tenant_nombre: str | None = None
+    raffle_nombre: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class PaymentRequestCreate(BaseModel):
+    raffle_id: UUID
+    comprobante_ref: str | None = None
+    notas_cliente: str | None = None
+
+
+class PaymentApproval(BaseModel):
+    notas_admin: str | None = None
