@@ -14,7 +14,12 @@ from app.lottery.schemas import (
     ScrapedResult,
 )
 from app.lottery.scraper import scrape_all_results
-from app.lottery.service import check_raffle_winner, fetch_and_store_results, get_results_history
+from app.lottery.service import (
+    check_raffle_winner,
+    fetch_and_check_winners,
+    fetch_and_store_results,
+    get_results_history,
+)
 
 router = APIRouter()
 
@@ -82,6 +87,16 @@ async def fetch_results(db: DbSession, tenant_id: CurrentTenantId, _user: AdminU
     return stored
 
 
+@router.post("/fetch-and-check", response_model=list[CheckWinnerResponse])
+async def fetch_and_check(db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser):
+    """
+    Main action: scrape results, store them, then auto-check ALL active raffles
+    for winners. Returns the check result for each raffle.
+    """
+    results = await fetch_and_check_winners(db, tenant_id)
+    return results
+
+
 @router.get("/scrape-preview", response_model=list[ScrapedResult])
 async def preview_scrape(_user: AdminUser):
     """Preview scraped results without storing (dry run)."""
@@ -103,7 +118,7 @@ async def list_results(
 
 @router.post("/check/{raffle_id}", response_model=CheckWinnerResponse)
 async def check_winner(raffle_id: UUID, db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser):
-    """Check if a raffle has a winner based on stored lottery results."""
+    """Check if a specific raffle has a winner based on stored lottery results."""
     try:
         result = await check_raffle_winner(db, raffle_id, tenant_id)
         return result

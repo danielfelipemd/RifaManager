@@ -58,6 +58,20 @@ export default function RaffleList() {
                   </span>
                 </div>
 
+                {raffle.numero_ganador && (
+                  <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs font-bold text-green-700">
+                      Numero ganador: {raffle.numero_ganador}
+                    </p>
+                  </div>
+                )}
+
+                {raffle.loteria_asociada && !raffle.numero_ganador && (
+                  <p className="text-xs text-gray-400 mb-2">
+                    Loteria: {raffle.loteria_asociada}
+                  </p>
+                )}
+
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex justify-between">
                     <span>Numeros:</span>

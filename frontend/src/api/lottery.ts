@@ -39,6 +39,9 @@ export interface CheckWinnerResponse {
   hay_ganador: boolean;
   ticket_ganador: string | null;
   comprador_nombre: string | null;
+  comprador_telefono: string | null;
+  comprador_email: string | null;
+  ticket_estado: string | null;
 }
 
 export async function getProviders(): Promise<LotteryProvider[]> {
@@ -62,6 +65,11 @@ export async function deleteProvider(id: string): Promise<void> {
 
 export async function fetchResults(): Promise<LotteryResult[]> {
   const { data } = await client.post<LotteryResult[]>("/lottery/fetch");
+  return data;
+}
+
+export async function fetchAndCheckWinners(): Promise<CheckWinnerResponse[]> {
+  const { data } = await client.post<CheckWinnerResponse[]>("/lottery/fetch-and-check");
   return data;
 }
 

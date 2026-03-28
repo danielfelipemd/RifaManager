@@ -23,7 +23,6 @@ async def fetch_and_store_results(db: AsyncSession, tenant_id: UUID) -> list[Lot
 
         fecha = parsed_date.date()
 
-        # Check if this result already exists
         existing = await db.execute(
             select(LotteryResult).where(
                 LotteryResult.tenant_id == tenant_id,
@@ -55,14 +54,44 @@ async def fetch_and_store_results(db: AsyncSession, tenant_id: UUID) -> list[Lot
     return stored
 
 
+async def fetch_and_check_winners(
+    db: AsyncSession, tenant_id: UUID
+) -> list[CheckWinnerResponse]:
+    """
+    Main flow: scrape results, store them, then auto-check ALL active raffles
+    that have a loteria_asociada. Returns list of winner checks.
+    """
+    # Step 1: Fetch and store latest results
+    await fetch_and_store_results(db, tenant_id)
+
+    # Step 2: Get all active raffles with a lottery association
+    raffles_result = await db.execute(
+        select(Raffle).where(
+            Raffle.tenant_id == tenant_id,
+            Raffle.estado == "activa",
+            Raffle.loteria_asociada.isnot(None),
+            Raffle.loteria_asociada != "",
+        )
+    )
+    active_raffles = raffles_result.scalars().all()
+
+    # Step 3: Check each raffle for winners
+    results = []
+    for raffle in active_raffles:
+        check = await check_raffle_winner(db, raffle.id, tenant_id)
+        results.append(check)
+
+    return results
+
+
 async def check_raffle_winner(
     db: AsyncSession, raffle_id: UUID, tenant_id: UUID
 ) -> CheckWinnerResponse:
     """Check if a raffle has a winner based on lottery results."""
-    raffle = await db.execute(
+    raffle_result = await db.execute(
         select(Raffle).where(Raffle.id == raffle_id, Raffle.tenant_id == tenant_id)
     )
-    raffle = raffle.scalar_one_or_none()
+    raffle = raffle_result.scalar_one_or_none()
     if raffle is None:
         raise ValueError("Rifa no encontrada")
 
@@ -92,24 +121,23 @@ async def check_raffle_winner(
             hay_ganador=False,
         )
 
-    # Get the last N digits of the lottery number matching raffle's numero_digitos
+    # Get the last N digits matching raffle's numero_digitos
     numero_loteria = lottery_result.numero
-    ultimos_digitos = numero_loteria[-raffle.numero_digitos:]
+    ultimos_digitos = numero_loteria[-raffle.numero_digitos:].zfill(raffle.numero_digitos)
 
-    # Search for a ticket with that number
+    # Search for a SOLD ticket with that number
     ticket_result = await db.execute(
         select(Ticket).where(
             Ticket.raffle_id == raffle.id,
             Ticket.numero == ultimos_digitos,
-            Ticket.estado == "vendido",
         )
     )
     winning_ticket = ticket_result.scalar_one_or_none()
 
-    hay_ganador = winning_ticket is not None
-
     # Update raffle with winning number
     raffle.numero_ganador = ultimos_digitos
+
+    hay_ganador = winning_ticket is not None and winning_ticket.estado == "vendido"
 
     response = CheckWinnerResponse(
         raffle_id=raffle.id,
@@ -119,11 +147,14 @@ async def check_raffle_winner(
         serie_loteria=lottery_result.serie,
         fecha_resultado=lottery_result.fecha,
         hay_ganador=hay_ganador,
+        ticket_ganador=ultimos_digitos,
     )
 
-    if winning_ticket:
-        response.ticket_ganador = winning_ticket.numero
+    if hay_ganador and winning_ticket:
         response.comprador_nombre = winning_ticket.vendido_a_nombre
+        response.comprador_telefono = winning_ticket.vendido_a_telefono
+        response.comprador_email = winning_ticket.vendido_a_email
+        response.ticket_estado = winning_ticket.estado
 
     await db.flush()
     return response

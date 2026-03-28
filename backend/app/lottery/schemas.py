@@ -61,3 +61,6 @@ class CheckWinnerResponse(BaseModel):
     hay_ganador: bool
     ticket_ganador: str | None = None
     comprador_nombre: str | None = None
+    comprador_telefono: str | None = None
+    comprador_email: str | None = None
+    ticket_estado: str | None = None
