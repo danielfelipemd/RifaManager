@@ -100,12 +100,16 @@ async def create_payment_request(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Ya existe una solicitud de pago pendiente para esta rifa")
 
-    # Calculate commission
-    config = await db.execute(
-        select(PlatformConfig).where(PlatformConfig.clave == "comision_porcentaje")
-    )
-    config = config.scalar_one_or_none()
-    porcentaje = Decimal(config.valor) if config else Decimal("0.05")
+    # Get commission: tenant-specific first, then platform default
+    tenant = await db.get(Tenant, tenant_id)
+    if tenant and tenant.comision_porcentaje is not None:
+        porcentaje = tenant.comision_porcentaje
+    else:
+        config = await db.execute(
+            select(PlatformConfig).where(PlatformConfig.clave == "comision_porcentaje")
+        )
+        config = config.scalar_one_or_none()
+        porcentaje = Decimal(config.valor) if config else Decimal("0.05")
 
     valor_total = raffle.precio_boleta * raffle.cantidad_numeros
     comision = valor_total * porcentaje
@@ -269,6 +273,7 @@ async def list_all_tenants(db: DbSession, _user: SuperAdmin):
         result.append(TenantDetail(
             id=tenant.id, nombre=tenant.nombre, slug=tenant.slug, plan=tenant.plan,
             activo=tenant.activo, config=tenant.config, created_at=tenant.created_at,
+            comision_porcentaje=tenant.comision_porcentaje,
             total_users=users_count, total_raffles=raffles_count,
             total_purchases=purchases_count, total_revenue=revenue,
         ))
@@ -281,7 +286,8 @@ async def create_tenant(data: TenantCreate, db: DbSession, _user: SuperAdmin):
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail=f"El slug '{data.slug}' ya existe")
 
-    tenant = Tenant(nombre=data.nombre, slug=data.slug, plan=data.plan)
+    tenant = Tenant(nombre=data.nombre, slug=data.slug, plan=data.plan,
+                    comision_porcentaje=data.comision_porcentaje)
     db.add(tenant)
     await db.flush()
 
@@ -296,6 +302,7 @@ async def create_tenant(data: TenantCreate, db: DbSession, _user: SuperAdmin):
     return TenantDetail(
         id=tenant.id, nombre=tenant.nombre, slug=tenant.slug, plan=tenant.plan,
         activo=tenant.activo, config=tenant.config, created_at=tenant.created_at,
+        comision_porcentaje=tenant.comision_porcentaje,
         total_users=1, total_raffles=0, total_purchases=0,
     )
 

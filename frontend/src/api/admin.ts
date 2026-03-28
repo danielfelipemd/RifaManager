@@ -16,6 +16,7 @@ export interface TenantDetail {
   plan: string;
   activo: boolean;
   config: Record<string, unknown>;
+  comision_porcentaje: number | null;
   created_at: string;
   total_users: number;
   total_raffles: number;
@@ -76,7 +77,7 @@ export async function getAllTenants(): Promise<TenantDetail[]> {
 }
 
 export async function createTenant(payload: {
-  nombre: string; slug: string; plan: string;
+  nombre: string; slug: string; plan: string; comision_porcentaje?: number;
   admin_nombre: string; admin_email: string; admin_password: string; admin_telefono?: string;
 }): Promise<TenantDetail> {
   const { data } = await client.post<TenantDetail>("/admin/tenants", payload);

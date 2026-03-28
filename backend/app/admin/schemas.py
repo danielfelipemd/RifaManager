@@ -12,6 +12,7 @@ class TenantDetail(BaseModel):
     plan: str
     activo: bool
     config: dict
+    comision_porcentaje: Decimal | None = None
     created_at: datetime
     total_users: int = 0
     total_raffles: int = 0
@@ -23,6 +24,7 @@ class TenantCreate(BaseModel):
     nombre: str
     slug: str
     plan: str = "basic"
+    comision_porcentaje: Decimal | None = None
     admin_nombre: str
     admin_email: str
     admin_password: str
@@ -33,6 +35,7 @@ class TenantUpdateAdmin(BaseModel):
     nombre: str | None = None
     plan: str | None = None
     activo: bool | None = None
+    comision_porcentaje: Decimal | None = None
 
 
 class PlatformStats(BaseModel):

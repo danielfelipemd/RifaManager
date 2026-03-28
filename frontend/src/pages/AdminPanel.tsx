@@ -281,13 +281,54 @@ function TenantsTab() {
 }
 
 function TenantExpanded({ tenantId, tenant }: { tenantId: string; tenant: TenantDetail }) {
+  const queryClient = useQueryClient();
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-tenant-users", tenantId],
     queryFn: () => getTenantUsers(tenantId),
   });
 
+  const [comision, setComision] = useState(tenant.comision_porcentaje?.toString() ?? "");
+
+  const saveComision = useMutation({
+    mutationFn: () => updateTenant(tenantId, { comision_porcentaje: comision ? parseFloat(comision) : undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
+      toast.success("Comision actualizada");
+    },
+  });
+
   return (
     <div className="border-t bg-gray-50 p-4">
+      {/* Commission config */}
+      <div className="bg-white rounded-lg border p-3 mb-4">
+        <p className="text-xs font-semibold text-gray-700 mb-2">Comision para este cliente</p>
+        <div className="flex items-center gap-3">
+          <select value={comision} onChange={(e) => setComision(e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Default plataforma</option>
+            <option value="0.01">1%</option>
+            <option value="0.02">2%</option>
+            <option value="0.03">3%</option>
+            <option value="0.04">4%</option>
+            <option value="0.05">5%</option>
+            <option value="0.06">6%</option>
+            <option value="0.07">7%</option>
+            <option value="0.08">8%</option>
+            <option value="0.09">9%</option>
+            <option value="0.10">10%</option>
+            <option value="0.15">15%</option>
+            <option value="0.20">20%</option>
+          </select>
+          <button onClick={() => saveComision.mutate()} disabled={saveComision.isPending}
+            className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700 disabled:opacity-50">
+            {saveComision.isPending ? "..." : "Guardar"}
+          </button>
+          <span className="text-xs text-gray-400">
+            {comision ? `${(parseFloat(comision) * 100).toFixed(0)}%` : "Usa el % global"}
+          </span>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <div className="bg-white rounded-lg p-3 border">
           <p className="text-xs text-gray-500">Usuarios</p>
@@ -351,7 +392,7 @@ function TenantExpanded({ tenantId, tenant }: { tenantId: string; tenant: Tenant
 
 function CreateTenantModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({
-    nombre: "", slug: "", plan: "basic",
+    nombre: "", slug: "", plan: "basic", comision: "",
     admin_nombre: "", admin_email: "", admin_password: "", admin_telefono: "",
   });
   const [loading, setLoading] = useState(false);
@@ -369,7 +410,10 @@ function CreateTenantModal({ onClose, onCreated }: { onClose: () => void; onCrea
     setLoading(true);
     try {
       await createTenant({
-        ...form,
+        nombre: form.nombre, slug: form.slug, plan: form.plan,
+        comision_porcentaje: form.comision ? parseFloat(form.comision) : undefined,
+        admin_nombre: form.admin_nombre, admin_email: form.admin_email,
+        admin_password: form.admin_password,
         admin_telefono: form.admin_telefono || undefined,
       });
       toast.success("Cliente creado con su administrador");
@@ -399,6 +443,16 @@ function CreateTenantModal({ onClose, onCreated }: { onClose: () => void; onCrea
                   <option value="enterprise">Enterprise</option>
                 </select>
               </div>
+              <select name="comision" value={form.comision} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                <option value="">Comision: Default plataforma</option>
+                <option value="0.01">Comision: 1%</option>
+                <option value="0.02">Comision: 2%</option>
+                <option value="0.03">Comision: 3%</option>
+                <option value="0.05">Comision: 5%</option>
+                <option value="0.10">Comision: 10%</option>
+                <option value="0.15">Comision: 15%</option>
+                <option value="0.20">Comision: 20%</option>
+              </select>
             </div>
           </div>
 
