@@ -31,7 +31,7 @@ async def get_db_session() -> AsyncSession:
 
 async def get_tenant_db(session: AsyncSession, tenant_id: UUID) -> AsyncSession:
     await session.execute(
-        text("SET LOCAL app.current_tenant_id = :tid"),
+        text("SET app.current_tenant_id = :tid"),
         {"tid": str(tenant_id)},
     )
     return session
