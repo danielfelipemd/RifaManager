@@ -6,14 +6,14 @@
 INSERT INTO tenants (id, nombre, slug, plan) VALUES
     ('00000000-0000-0000-0000-000000000001', 'RifaManager Platform', 'platform', 'enterprise');
 
--- Super Admin (password: SuperAdmin2026!)
+-- Super Admin (password: Admin123)
 INSERT INTO users (id, tenant_id, nombre, email, telefono, password_hash, role) VALUES
     ('00000000-0000-0000-0000-000000000002',
      '00000000-0000-0000-0000-000000000001',
      'Super Administrador',
      'superadmin@rifamanager.com',
      '+573000000000',
-     '$2b$12$wVAOnmKXH7mSoNRC.RpTxOUiH1NiGLRx7ISLZ2MHey3sRsDITvsTO',
+     '$2b$12$CzWx.CpcPsLRxmmgnfQDq.s3yxGouOnJ5a1PsyeR.p0P35ZN/gVe6',
      'super_admin');
 
 -- Demo tenant
