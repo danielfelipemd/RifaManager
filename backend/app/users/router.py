@@ -21,6 +21,16 @@ async def list_users(db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(data: UserCreate, db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser):
+    # Validate email uniqueness within tenant
+    existing = await db.execute(
+        select(User).where(User.tenant_id == tenant_id, User.email == data.email)
+    )
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El email '{data.email}' ya existe en esta organizacion",
+        )
+
     user = User(
         tenant_id=tenant_id,
         nombre=data.nombre,

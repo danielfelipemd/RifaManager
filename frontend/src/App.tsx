@@ -12,6 +12,8 @@ import RaffleCreate from "@/pages/RaffleCreate";
 import RaffleDetail from "@/pages/RaffleDetail";
 import TicketGrid from "@/pages/TicketGrid";
 import PurchaseHistory from "@/pages/PurchaseHistory";
+import UserManagement from "@/pages/UserManagement";
+import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -38,6 +40,8 @@ export default function App() {
               <Route path="/raffles/:id" element={<RaffleDetail />} />
               <Route path="/raffles/:id/tickets" element={<TicketGrid />} />
               <Route path="/purchases" element={<PurchaseHistory />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

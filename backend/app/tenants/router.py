@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.dependencies import AdminUser, CurrentTenantId, DbSession
 from app.tenants.models import Tenant
@@ -10,6 +10,8 @@ router = APIRouter()
 @router.get("/me", response_model=TenantRead)
 async def get_my_tenant(db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser):
     tenant = await db.get(Tenant, tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=404, detail="Tenant no encontrado")
     return tenant
 
 
@@ -21,6 +23,8 @@ async def update_my_tenant(
     _user: AdminUser,
 ):
     tenant = await db.get(Tenant, tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=404, detail="Tenant no encontrado")
     if data.nombre is not None:
         tenant.nombre = data.nombre
     if data.config is not None:

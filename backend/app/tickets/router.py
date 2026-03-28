@@ -60,22 +60,22 @@ async def tickets_summary(
     )
 
 
-@router.post("/{ticket_id}/reserve", response_model=TicketRead)
-async def reserve(ticket_id: UUID, db: DbSession, user: CurrentUser):
-    ticket = await reserve_ticket(db, ticket_id, user.id)
+@router.post("/tickets/{ticket_id}/reserve", response_model=TicketRead)
+async def reserve(ticket_id: UUID, db: DbSession, user: CurrentUser, tenant_id: CurrentTenantId):
+    ticket = await reserve_ticket(db, ticket_id, user.id, tenant_id)
     return ticket
 
 
-@router.delete("/{ticket_id}/reserve", response_model=TicketRead)
-async def cancel_reserve(ticket_id: UUID, db: DbSession, user: CurrentUser):
-    ticket = await cancel_reservation(db, ticket_id, user.id)
+@router.delete("/tickets/{ticket_id}/reserve", response_model=TicketRead)
+async def cancel_reserve(ticket_id: UUID, db: DbSession, user: CurrentUser, tenant_id: CurrentTenantId):
+    ticket = await cancel_reservation(db, ticket_id, user.id, tenant_id)
     return ticket
 
 
-@router.post("/{ticket_id}/purchase", response_model=PurchaseRead)
-async def purchase(ticket_id: UUID, buyer: BuyerInfo, db: DbSession, user: CurrentUser):
-    purchase = await purchase_ticket(db, ticket_id, buyer, user.id)
-    return purchase
+@router.post("/tickets/{ticket_id}/purchase", response_model=PurchaseRead)
+async def purchase(ticket_id: UUID, buyer: BuyerInfo, db: DbSession, user: CurrentUser, tenant_id: CurrentTenantId):
+    result = await purchase_ticket(db, ticket_id, buyer, user.id, tenant_id)
+    return result
 
 
 @router.post(
@@ -88,6 +88,7 @@ async def bulk_purchase(
     data: BulkPurchaseRequest,
     db: DbSession,
     user: CurrentUser,
+    tenant_id: CurrentTenantId,
 ):
-    purchases = await bulk_purchase_tickets(db, data.ticket_ids, data.buyer, user.id)
+    purchases = await bulk_purchase_tickets(db, data.ticket_ids, data.buyer, user.id, tenant_id)
     return purchases

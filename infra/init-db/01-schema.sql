@@ -50,13 +50,14 @@ CREATE TABLE raffles (
     loteria_asociada    VARCHAR(100),
     numero_ganador      VARCHAR(10),
     imagen_url          TEXT,
-    created_by          UUID REFERENCES users(id),
+    created_by          UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_raffles_tenant ON raffles(tenant_id);
 CREATE INDEX idx_raffles_estado ON raffles(tenant_id, estado);
+CREATE INDEX idx_raffles_created_by ON raffles(created_by);
 CREATE INDEX idx_raffles_fecha ON raffles(fecha_sorteo);
 
 -- TICKETS (BOLETAS)
@@ -82,14 +83,15 @@ CREATE INDEX idx_tickets_raffle ON tickets(raffle_id);
 CREATE INDEX idx_tickets_estado ON tickets(raffle_id, estado);
 CREATE INDEX idx_tickets_reservado_hasta ON tickets(reservado_hasta)
     WHERE estado = 'reservado';
+CREATE INDEX idx_tickets_reservado_por ON tickets(reservado_por);
 
 -- PURCHASES (COMPRAS)
 CREATE TABLE purchases (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id           UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    ticket_id           UUID NOT NULL REFERENCES tickets(id),
-    raffle_id           UUID NOT NULL REFERENCES raffles(id),
-    usuario_id          UUID REFERENCES users(id),
+    ticket_id           UUID NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+    raffle_id           UUID NOT NULL REFERENCES raffles(id) ON DELETE CASCADE,
+    usuario_id          UUID REFERENCES users(id) ON DELETE SET NULL,
     comprador_nombre    VARCHAR(255) NOT NULL,
     comprador_telefono  VARCHAR(20),
     comprador_email     VARCHAR(255),
@@ -104,6 +106,7 @@ CREATE TABLE purchases (
 CREATE INDEX idx_purchases_tenant ON purchases(tenant_id);
 CREATE INDEX idx_purchases_raffle ON purchases(raffle_id);
 CREATE INDEX idx_purchases_fecha ON purchases(tenant_id, created_at);
+CREATE INDEX idx_purchases_usuario ON purchases(usuario_id);
 
 -- LOTTERY RESULTS
 CREATE TABLE lottery_results (

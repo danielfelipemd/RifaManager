@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +41,22 @@ def create_tokens(user: User) -> TokenResponse:
 
 
 async def register_tenant_and_admin(db: AsyncSession, data: RegisterRequest) -> TokenResponse:
+    # Validate slug uniqueness
+    existing = await db.execute(select(Tenant).where(Tenant.slug == data.tenant_slug))
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El slug '{data.tenant_slug}' ya esta en uso",
+        )
+
+    # Validate email uniqueness
+    existing_user = await db.execute(select(User).where(User.email == data.email))
+    if existing_user.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El email '{data.email}' ya esta registrado",
+        )
+
     tenant = Tenant(nombre=data.tenant_nombre, slug=data.tenant_slug)
     db.add(tenant)
     await db.flush()
