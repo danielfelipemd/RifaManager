@@ -16,7 +16,6 @@ app = FastAPI(
     version="1.0.0",
     description="API para gestion de rifas digitales multi-tenant",
     lifespan=lifespan,
-    redirect_slashes=False,
 )
 
 app.add_middleware(

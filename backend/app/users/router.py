@@ -11,7 +11,7 @@ from app.users.schemas import UserCreate, UserRead, UserUpdate
 router = APIRouter()
 
 
-@router.get("/", response_model=list[UserRead])
+@router.get("", response_model=list[UserRead])
 async def list_users(db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser):
     result = await db.execute(
         select(User).where(User.tenant_id == tenant_id).order_by(User.created_at.desc())
@@ -19,7 +19,7 @@ async def list_users(db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser
     return result.scalars().all()
 
 
-@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(data: UserCreate, db: DbSession, tenant_id: CurrentTenantId, _user: AdminUser):
     # Validate email uniqueness within tenant
     existing = await db.execute(

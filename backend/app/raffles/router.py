@@ -11,7 +11,7 @@ from app.raffles.service import create_raffle_with_tickets, get_raffle_stats
 router = APIRouter()
 
 
-@router.get("/", response_model=list[RaffleRead])
+@router.get("", response_model=list[RaffleRead])
 async def list_raffles(db: DbSession, tenant_id: CurrentTenantId, _user: CurrentUser):
     result = await db.execute(
         select(Raffle).where(Raffle.tenant_id == tenant_id).order_by(Raffle.created_at.desc())
@@ -19,7 +19,7 @@ async def list_raffles(db: DbSession, tenant_id: CurrentTenantId, _user: Current
     return result.scalars().all()
 
 
-@router.post("/", response_model=RaffleRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=RaffleRead, status_code=status.HTTP_201_CREATED)
 async def create_raffle(data: RaffleCreate, db: DbSession, tenant_id: CurrentTenantId, user: AdminUser):
     raffle = await create_raffle_with_tickets(db, tenant_id, user.id, data)
     return raffle

@@ -10,7 +10,7 @@ from app.purchases.schemas import PurchaseRead
 router = APIRouter()
 
 
-@router.get("/", response_model=list[PurchaseRead])
+@router.get("", response_model=list[PurchaseRead])
 async def list_purchases(
     db: DbSession,
     tenant_id: CurrentTenantId,
