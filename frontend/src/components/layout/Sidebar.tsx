@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   Settings,
   Trophy,
+  Shield,
   X,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
@@ -18,6 +19,7 @@ const navItems = [
   { to: "/lottery", icon: Trophy, label: "Loterias", roles: ["admin", "super_admin", "vendedor"] },
   { to: "/users", icon: Users, label: "Usuarios", roles: ["admin", "super_admin"] },
   { to: "/settings", icon: Settings, label: "Config", roles: ["admin", "super_admin"] },
+  { to: "/admin", icon: Shield, label: "Admin", roles: ["super_admin"] },
 ];
 
 interface SidebarProps {

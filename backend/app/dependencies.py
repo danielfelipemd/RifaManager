@@ -1,9 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.jwt import decode_token
@@ -47,7 +47,10 @@ async def get_current_user(
             detail="Usuario no encontrado o inactivo",
         )
 
-    await get_tenant_db(db, user.tenant_id)
+    # Super admin can bypass RLS by not setting tenant context
+    if user.role != "super_admin":
+        await get_tenant_db(db, user.tenant_id)
+
     return user
 
 
@@ -75,3 +78,4 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentTenantId = Annotated[UUID, Depends(get_current_tenant_id)]
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 AdminUser = Annotated[User, Depends(require_role("admin", "super_admin"))]
+SuperAdmin = Annotated[User, Depends(require_role("super_admin"))]

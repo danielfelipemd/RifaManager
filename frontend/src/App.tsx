@@ -15,6 +15,7 @@ import PurchaseHistory from "@/pages/PurchaseHistory";
 import UserManagement from "@/pages/UserManagement";
 import Settings from "@/pages/Settings";
 import LotteryResults from "@/pages/LotteryResults";
+import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/lottery" element={<LotteryResults />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/admin" element={<AdminPanel />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
